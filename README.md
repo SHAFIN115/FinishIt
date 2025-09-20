@@ -1,4 +1,6 @@
-``` markdown
+Here’s an **updated README.md** with **Prisma integration** added, replacing Sequelize references, and keeping your original style intact:
+
+````markdown
 # ✅ FinishIt - ToDo App
 
 FinishIt is a ```simple yet powerful ToDo application``` designed to help you stay organized and productive.  
@@ -20,7 +22,7 @@ You can create, manage, and track your daily tasks with ease.
 Backend
 - Node.js + Express
 - MySQL (with Docker)
-- Sequelize ORM
+- **Prisma ORM**
 - JWT Authentication (if enabled)
 
 Frontend
@@ -36,11 +38,13 @@ DevOps
 
 ## 📂 Project Structure
 
-```FinishIt/
+```plaintext
+FinishIt/
 │── backend/        # Node.js backend
 │   ├── routes/     # API routes
-│   ├── models/     # Sequelize models
 │   ├── controllers/ # Business logic
+│   ├── prisma/     # Prisma schema & migrations
+│   ├── generated/  # Prisma client code (auto-generated)
 │   ├── .env        # Local environment variables
 │   └── docker-compose.yml
 │
@@ -53,10 +57,11 @@ DevOps
 ## ⚙️ Setup Instructions
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/SHAFIN115/FinishIt.git
 cd FinishIt
-````
+```
 
 ### 2. Backend Setup
 
@@ -71,6 +76,7 @@ Create a `.env` file inside **backend/**:
 
 ```env
 PORT=5000
+DATABASE_URL="mysql://myuser:mypassword@localhost:3306/myappdb"
 MYSQL_ROOT_PASSWORD=rootpassword
 MYSQL_DATABASE=myappdb
 MYSQL_USER=myuser
@@ -84,10 +90,18 @@ MYSQL_PORT=3306
 docker-compose up -d
 ```
 
-### 5. Start Backend
+### 5. Initialize Prisma
 
 ```bash
-npm run dev
+npx prisma generate          # Generate Prisma client
+npx prisma migrate dev --name init  # Run initial migration
+npx prisma studio            # Open Prisma Studio to inspect DB
+```
+
+### 6. Start Backend
+
+```bash
+node app.js
 ```
 
 API should be running at:
@@ -106,3 +120,12 @@ Frontend will be built using **React + Tailwind** and integrated with the backen
 Pull requests are welcome! For major changes, please open an issue first to discuss what you’d like to change.
 
 ---
+
+## ⚠️ Notes
+
+* Do **not** commit `.env` or `generated/` folders.
+* Use `npx prisma studio` to explore your database visually.
+* Prisma migrations are stored in `prisma/migrations/`.
+
+```
+
