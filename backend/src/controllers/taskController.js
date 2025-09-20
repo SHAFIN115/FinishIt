@@ -1,4 +1,4 @@
-const pool = require('../db');
+const pool = require('../../config/db');
 
 // Get all tasks for a user
 exports.getTasks = async (req, res) => {
