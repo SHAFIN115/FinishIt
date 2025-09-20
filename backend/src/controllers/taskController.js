@@ -1,10 +1,14 @@
-const pool = require('../../config/db');
+const { PrismaClient } = require('../generated/prisma');
+const prisma = new PrismaClient();
 
 // Get all tasks for a user
 exports.getTasks = async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM tasks WHERE user_id = ?', [req.user.userId]);
-    res.json({ success: true, tasks: rows });
+    const tasks = await prisma.task.findMany({
+      where: { userId: req.user.userId },
+      orderBy: { createdAt: 'desc' }, // optional: order newest first
+    });
+    res.json({ success: true, tasks });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -18,11 +22,16 @@ exports.addTask = async (req, res) => {
   }
 
   try {
-    const [result] = await pool.query(
-      'INSERT INTO tasks (user_id, title, description, status, priority) VALUES (?, ?, ?, ?, ?)',
-      [req.user.userId, title, description || '', 'pending', priority]
-    );
-    res.json({ success: true, taskId: result.insertId });
+    const task = await prisma.task.create({
+      data: {
+        title,
+        description: description || '',
+        priority,
+        status: 'pending',
+        userId: req.user.userId,
+      },
+    });
+    res.json({ success: true, taskId: task.id });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -34,12 +43,13 @@ exports.updateTask = async (req, res) => {
   const { title, description, priority, status } = req.body;
 
   try {
-    const [result] = await pool.query(
-      'UPDATE tasks SET title=?, description=?, priority=?, status=? WHERE id=? AND user_id=?',
-      [title, description, priority, status, id, req.user.userId]
-    );
+    // Update task only if it belongs to the user
+    const task = await prisma.task.updateMany({
+      where: { id: parseInt(id), userId: req.user.userId },
+      data: { title, description, priority, status },
+    });
 
-    if (result.affectedRows === 0) {
+    if (task.count === 0) {
       return res.status(404).json({ success: false, message: 'Task not found or not yours' });
     }
 
@@ -54,12 +64,12 @@ exports.deleteTask = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [result] = await pool.query(
-      'DELETE FROM tasks WHERE id=? AND user_id=?',
-      [id, req.user.userId]
-    );
+    // Delete task only if it belongs to the user
+    const task = await prisma.task.deleteMany({
+      where: { id: parseInt(id), userId: req.user.userId },
+    });
 
-    if (result.affectedRows === 0) {
+    if (task.count === 0) {
       return res.status(404).json({ success: false, message: 'Task not found or not yours' });
     }
 
